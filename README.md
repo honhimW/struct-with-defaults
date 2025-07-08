@@ -1,4 +1,4 @@
-# Struct with defaults
+# Macro 3681
 
 ### FYI
 - [Rust rfcs-3681](https://github.com/rust-lang/rfcs/pull/3681)
@@ -76,6 +76,19 @@ impl<'a, 'b> Default for Foo<'a, 'b> {
             option_string: Default::default(),
             b: Default::default(),
         }
+    }
+}
+```
+
+### Without Default derive
+
+Will not generate `Self::default()` function, only `Self::new(..)` is available
+```rust
+default_field_values! {
+    #[derive(Clone, Debug)]
+    pub(crate) struct Bar {
+        pub i: u32,
+        j: u32 = 100 * 4,
     }
 }
 ```
