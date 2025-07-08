@@ -7,10 +7,14 @@ use syn::parse::{Parse, ParseStream, Parser, Result};
 pub fn default_field_values(input: TokenStream) -> TokenStream {
     let StructDef { attrs,visibility,   name, generics, fields } = parse_macro_input!(input as StructDef);
     let field_defs = fields.iter().map(|f| {
+        let attrs = &f.attrs;
         let visibility = &f.visibility;
         let ident = &f.ident;
         let ty = &f.ty;
-        quote! { #visibility #ident: #ty }
+        quote! {
+            #(#attrs)*
+            #visibility #ident: #ty
+        }
     });
 
     let constructor_args = fields.iter().filter_map(|f| {
@@ -112,27 +116,6 @@ fn has_derive_default(attrs: &[syn::Attribute]) -> bool {
 
 fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> {
     let mut output: Vec<syn::Attribute> = Vec::new();
-
-    // for attr in attrs {
-    //     if attr.path().is_ident("derive") {
-    //         let idents = attr.parse_args_with(
-    //             |parser: syn::parse::ParseStream| {
-    //                 syn::punctuated::Punctuated::<Ident, Token![,]>::parse_terminated(parser)
-    //             }
-    //         ).unwrap_or_default();
-    //
-    //         let retained: Vec<_> = idents.into_iter().filter(|i| i != "Default").collect();
-    //
-    //         if !retained.is_empty() {
-    //             output.push(quote! {
-    //                 #[derive(#(#retained),*)]
-    //             }.into());
-    //         }
-    //     } else {
-    //         output.push(quote! { #attr }.into());
-    //     }
-    // }
-
     for attr in attrs {
         if attr.path().is_ident("derive") {
             if let Ok(punct) = attr.parse_args_with(|parser: ParseStream| {
@@ -142,11 +125,6 @@ fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> 
                 let mut kept = Vec::new();
                 while let Some(ident) = iter.next() {
                     if ident == "Default" {
-                        // if let Some(comma) = iter.peek() {
-                        //     if comma == "," {
-                        //         iter.next();
-                        //     }
-                        // }
                         continue;
                     }
                     kept.push(ident);
@@ -208,6 +186,7 @@ impl Parse for StructDef {
 
 #[allow(unused)]
 struct Field {
+    attrs: Vec<syn::Attribute>,
     visibility: Visibility,
     ident: Ident,
     colon_token: Token![:],
@@ -219,6 +198,7 @@ struct Field {
 
 impl Parse for Field {
     fn parse(input: ParseStream) -> Result<Self> {
+        let attrs = input.call(syn::Attribute::parse_outer)?;
         let visibility = input.parse()?;
         let ident: Ident = input.parse()?;
         let colon_token: Token![:] = input.parse()?;
@@ -235,6 +215,7 @@ impl Parse for Field {
         let comma_token = input.parse().ok();
 
         Ok(Field {
+            attrs,
             visibility,
             ident,
             colon_token,
