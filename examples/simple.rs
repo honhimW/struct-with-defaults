@@ -1,4 +1,4 @@
-use macros3681::default_field_values;
+use macro3681::default_field_values;
 
 default_field_values! {
     #[derive(Debug, Default)]

@@ -6,8 +6,15 @@ rust-version = { workspace = true }
 
 [workspace]
 members = ["macros"]
-package = { version = "0.0.1", rust-version = "1.87.0", edition = "2024", authors = ["honhimw <honhimw@outlook.com>"] }
 
+[workspace.package]
+version = "0.0.1"
+rust-version = "1.87.0"
+edition = "2024"
+authors = ["honhimw <honhimw@outlook.com>"]
+description = "define struct with default field values like rfc3681 via proc-macro"
+keywords = ["default-values", "proc-macro"]
+license = "MIT"
 
 [dependencies]
-macros3681 = { path = "./macros" }
+macro3681 = { path = "./macros" }

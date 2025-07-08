@@ -1,12 +1,12 @@
 [package]
-name = "macros3681"
+name = "macro3681"
 version = { workspace = true }
 edition = { workspace = true }
 rust-version = { workspace = true }
 authors = { workspace = true }
 
 [lib]
-name = "macros3681"
+name = "macro3681"
 proc-macro = true
 
 [dependencies]

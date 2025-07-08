@@ -1,4 +1,4 @@
-# Struct with defaults
+# Macro 3681
 
 ### FYI
 - [Rust rfcs-3681](https://github.com/rust-lang/rfcs/pull/3681)
