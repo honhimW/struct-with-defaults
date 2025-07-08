@@ -1,0 +1,13 @@
+[package]
+name = "struct-with-defaults"
+version = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+
+[workspace]
+members = ["macros"]
+package = { version = "0.0.1", rust-version = "1.87.0", edition = "2024" }
+
+
+[dependencies]
+macros3681 = { path = "./macros" }
