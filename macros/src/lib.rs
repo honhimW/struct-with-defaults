@@ -32,7 +32,7 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
         }
     });
 
-    let (impl_gen, ty_gen, where_gen) = generics.split_for_impl();
+    let (impl_gen, _, where_gen) = generics.split_for_impl();
     let expanded = if has_derive_default(&attrs) {
         let has_default_inits = fields.iter()
             .filter_map(|f| {
