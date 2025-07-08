@@ -18,7 +18,5 @@ default_field_values! {
 
 fn main() {
     let foo = Foo::new(None, true,);
-    bool::default();
     dbg!("{:?}", foo);
 }
-

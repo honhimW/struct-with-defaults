@@ -3,6 +3,20 @@ use quote::quote;
 use syn::{parse_macro_input, Ident, Token, Type, Expr, Visibility};
 use syn::parse::{Parse, ParseStream, Parser, Result};
 
+/// ```rust
+/// use macro3681::default_field_values;
+///
+/// default_field_values! {
+///     pub struct Foo {
+///         i: i32,
+///         j: u32 = 1,
+///         string: String = {
+///             let s = format!("{} {}", "foo", "bar");
+///             s
+///         }
+///     }
+/// }
+/// ```
 #[proc_macro]
 pub fn default_field_values(input: TokenStream) -> TokenStream {
     let StructDef { attrs,visibility,   name, generics, fields } = parse_macro_input!(input as StructDef);
@@ -135,13 +149,9 @@ fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> 
                 }
 
                 let new_tokens = quote! { #[derive(#(#kept),*)] };
-                eprintln!("{:?}", new_tokens);
                 match syn::Attribute::parse_outer.parse2(new_tokens) {
                     Ok(new_attrs) => output.extend(new_attrs),
-                    Err(e) => {
-                        eprintln!("{:?}", e);
-                        output.push(attr)
-                    },
+                    Err(_) => output.push(attr),
                 }
             } else {
                 output.push(attr); // 无法解析就保留原样
@@ -169,11 +179,6 @@ impl Parse for StructDef {
         let name: Ident = input.parse()?;
         let mut generics: syn::Generics = input.parse()?;
         generics.where_clause = input.parse()?;
-        if let Some(ref w) = generics.where_clause {
-            eprintln!("{:?}", w.where_token.span);
-        } else {
-            eprintln!("no where clause");
-        }
         let content;
         syn::braced!(content in input);
         let mut fields = Vec::new();

@@ -20,9 +20,14 @@ mod test {
         pub(crate) struct ExampleWithDefaultTrait {
             i: u32,
             j: u32 = 100 * 4,
+            hello: String = get(),
         }
     }
 
+    fn get() -> String {
+        "hello world".to_string()
+    }
+    
     #[test]
     fn defaults() {
         let config = Example::new(0, None);
@@ -36,7 +41,9 @@ mod test {
         assert_eq!(c.i, 101);
         assert_eq!(c.j, 400);
         let c = ExampleWithDefaultTrait::default();
+        assert_eq!(c.i, 0);
         assert_eq!(c.j, 400);
+        assert_eq!(c.hello, "hello world".to_string());
     }
 
     #[test]
