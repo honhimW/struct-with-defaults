@@ -1,7 +1,8 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Ident, Token, Type, Expr, Visibility};
+use syn::{parse_macro_input, Ident, Token, Type, Expr, Visibility, Attribute, Generics};
 use syn::parse::{Parse, ParseStream, Parser, Result};
+use syn::punctuated::Punctuated;
 
 /// ```rust
 /// use macro3681::default_field_values;
@@ -32,24 +33,22 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
     });
 
     let constructor_args = fields.iter().filter_map(|f| {
-        if f.default.is_none() {
-            let ident = &f.ident;
-            let ty = &f.ty;
-            Some(quote! { #ident: #ty })
-        } else {
-            None
+        match &f.default {
+            DefaultValue::None => {
+                let ident = &f.ident;
+                let ty = &f.ty;
+                Some(quote! { #ident: #ty })
+            }
+            _ => None,
         }
     });
 
     let constructor_inits = fields.iter().map(|f| {
         let ident = &f.ident;
-        if let Some(default) = &f.default {
-            match default {
-                DefaultValue::Underscore => quote! { #ident: Default::default() },
-                DefaultValue::Expr(default_expr) => quote! { #ident: #default_expr },
-            }
-        } else {
-            quote! { #ident }
+        match &f.default {
+            DefaultValue::None => quote! { #ident },
+            DefaultValue::Underscore => quote! { #ident: Default::default() },
+            DefaultValue::Expr(default_expr) => quote! { #ident: #default_expr },
         }
     });
 
@@ -58,22 +57,21 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
         let has_default_inits = fields.iter()
             .filter_map(|f| {
                 let ident = &f.ident;
-                if let Some(default) = &f.default {
-                    Some(match default {
-                        DefaultValue::Underscore => quote! { #ident: Default::default() },
-                        DefaultValue::Expr(default_expr) => quote! { #ident: #default_expr },
-                    })
-                } else {
-                    None
+                match &f.default {
+                    DefaultValue::None => None,
+                    DefaultValue::Underscore => Some(quote! { #ident: Default::default() }),
+                    DefaultValue::Expr(default_expr) => Some(quote! { #ident: #default_expr }),
                 }
             });
 
         let no_default_inits = fields.iter().filter_map(|f| {
-            if f.default.is_none() {
-                let ident = &f.ident;
-                Some(quote! { #ident: Default::default() })
-            } else {
-                None
+            match &f.default {
+                DefaultValue::None => {
+                    let ident = &f.ident;
+                    Some(quote! { #ident: Default::default() })
+                },
+                DefaultValue::Underscore => None,
+                DefaultValue::Expr(_) => None,
             }
         });
         let strip_default_attrs = strip_default_from_derive(attrs);
@@ -122,24 +120,24 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-fn has_derive_default(attrs: &[syn::Attribute]) -> bool {
+fn has_derive_default(attrs: &[Attribute]) -> bool {
     attrs.iter().any(|attr| {
         if !attr.path().is_ident("derive") {
             return false;
         }
-        attr.parse_args_with(|parser: syn::parse::ParseStream| {
-            let idents = syn::punctuated::Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated(parser)?;
+        attr.parse_args_with(|parser: ParseStream| {
+            let idents = Punctuated::<Ident, Token![,]>::parse_terminated(parser)?;
             Ok(idents.iter().any(|ident| ident == "Default"))
         }).unwrap_or(false)
     })
 }
 
-fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> {
-    let mut output: Vec<syn::Attribute> = Vec::new();
+fn strip_default_from_derive(attrs: Vec<Attribute>) -> Vec<Attribute> {
+    let mut output: Vec<Attribute> = Vec::new();
     for attr in attrs {
         if attr.path().is_ident("derive") {
             if let Ok(punct) = attr.parse_args_with(|parser: ParseStream| {
-                syn::punctuated::Punctuated::<Ident, Token![,]>::parse_terminated(parser)
+                Punctuated::<Ident, Token![,]>::parse_terminated(parser)
             }) {
                 let mut iter = punct.into_iter().peekable();
                 let mut kept = Vec::new();
@@ -155,7 +153,7 @@ fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> 
                 }
 
                 let new_tokens = quote! { #[derive(#(#kept),*)] };
-                match syn::Attribute::parse_outer.parse2(new_tokens) {
+                match Attribute::parse_outer.parse2(new_tokens) {
                     Ok(new_attrs) => output.extend(new_attrs),
                     Err(_) => output.push(attr),
                 }
@@ -170,20 +168,20 @@ fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> 
 }
 
 struct StructDef {
-    attrs: Vec<syn::Attribute>,
+    attrs: Vec<Attribute>,
     visibility: Visibility,
     name: Ident,
-    generics: syn::Generics,
+    generics: Generics,
     fields: Vec<Field>,
 }
 
 impl Parse for StructDef {
     fn parse(input: ParseStream) -> Result<Self> {
-        let attrs = input.call(syn::Attribute::parse_outer)?;
+        let attrs = input.call(Attribute::parse_outer)?;
         let visibility = input.parse()?;
         let _ = input.parse::<Token![struct]>()?;
         let name: Ident = input.parse()?;
-        let mut generics: syn::Generics = input.parse()?;
+        let mut generics: Generics = input.parse()?;
         generics.where_clause = input.parse()?;
         let content;
         syn::braced!(content in input);
@@ -197,17 +195,15 @@ impl Parse for StructDef {
 
 #[allow(unused)]
 struct Field {
-    attrs: Vec<syn::Attribute>,
+    attrs: Vec<Attribute>,
     visibility: Visibility,
     ident: Ident,
-    colon_token: Token![:],
     ty: Type,
-    eq_token: Option<Token![=]>,
-    default: Option<DefaultValue>,
-    comma_token: Option<Token![,]>,
+    default: DefaultValue,
 }
 
 enum DefaultValue {
+    None,
     Underscore,
     Expr(Expr),
 }
@@ -226,31 +222,28 @@ impl Parse for DefaultValue {
 
 impl Parse for Field {
     fn parse(input: ParseStream) -> Result<Self> {
-        let attrs = input.call(syn::Attribute::parse_outer)?;
+        let attrs = input.call(Attribute::parse_outer)?;
         let visibility = input.parse()?;
         let ident: Ident = input.parse()?;
-        let colon_token: Token![:] = input.parse()?;
+        let _colon_token: Token![:] = input.parse()?;
         let ty: Type = input.parse()?;
 
-        let (eq_token, default) = if input.peek(Token![=]) {
-            let eq_token: Token![=] = input.parse()?;
+        let default = if input.peek(Token![=]) {
+            let _eq_token: Token![=] = input.parse()?;
             let default: DefaultValue = input.parse()?;
-            (Some(eq_token), Some(default))
+            default
         } else {
-            (None, None)
+            DefaultValue::None
         };
 
-        let comma_token = input.parse().ok();
+        let _comma_token: Result<Token![,]> = input.parse();
 
         Ok(Field {
             attrs,
             visibility,
             ident,
-            colon_token,
             ty,
-            eq_token,
             default,
-            comma_token,
         })
     }
 }

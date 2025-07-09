@@ -11,8 +11,8 @@ mod test {
     #[test]
     fn new() {
         let foo = Foo { .. };
-        dbg!(foo);
-        println!("in nightly");
+        assert_eq!(foo.a, 1);
+        assert_eq!(foo.t, "hello");
     }
 
 }
