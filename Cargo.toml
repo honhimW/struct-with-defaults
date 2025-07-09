@@ -3,6 +3,7 @@ name = "struct-with-defaults"
 version = { workspace = true }
 edition = { workspace = true }
 rust-version = { workspace = true }
+build = "build.rs"
 
 [workspace]
 members = ["macros"]
@@ -20,3 +21,6 @@ readme = "README.md"
 
 [dependencies]
 macro3681 = { path = "./macros" }
+
+[build-dependencies]
+rustc_version = "*"

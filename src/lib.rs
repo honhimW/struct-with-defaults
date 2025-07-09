@@ -1,3 +1,7 @@
+#![feature(default_field_values)]
+
+mod nightly;
+
 #[cfg(test)]
 mod test {
     use macro3681::default_field_values;
@@ -11,7 +15,19 @@ mod test {
                 s
             },
             os: Option<String>,
+            foo: Foo = _,
             bytes: &'static[u8] = b"hello world",
+        }
+    }
+
+    #[derive(Eq, PartialEq, Debug)]
+    struct Foo {
+        bar: String,
+    }
+
+    impl Default for Foo {
+        fn default() -> Self {
+            Self { bar: "bar".to_string() }
         }
     }
 
@@ -36,6 +52,7 @@ mod test {
         assert_eq!(config.i_option, Some(1000));
         assert_eq!(config.string, "hello world".to_string());
         assert_eq!(config.os, None);
+        assert_eq!(config.foo, Foo { bar: "bar".to_string() });
         assert_eq!(config.bytes, b"hello world");
         let c = ExampleWithDefaultTrait::new(101).clone();
         assert_eq!(c.i, 101);
@@ -46,6 +63,4 @@ mod test {
         assert_eq!(c.hello, "hello world".to_string());
     }
 
-    #[test]
-    fn construct() {}
 }

@@ -44,7 +44,10 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
     let constructor_inits = fields.iter().map(|f| {
         let ident = &f.ident;
         if let Some(default) = &f.default {
-            quote! { #ident: #default }
+            match default {
+                DefaultValue::Underscore => quote! { #ident: Default::default() },
+                DefaultValue::Expr(default_expr) => quote! { #ident: #default_expr },
+            }
         } else {
             quote! { #ident }
         }
@@ -56,7 +59,10 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
             .filter_map(|f| {
                 let ident = &f.ident;
                 if let Some(default) = &f.default {
-                    Some(quote! { #ident: #default })
+                    Some(match default {
+                        DefaultValue::Underscore => quote! { #ident: Default::default() },
+                        DefaultValue::Expr(default_expr) => quote! { #ident: #default_expr },
+                    })
                 } else {
                     None
                 }
@@ -197,8 +203,25 @@ struct Field {
     colon_token: Token![:],
     ty: Type,
     eq_token: Option<Token![=]>,
-    default: Option<Expr>,
+    default: Option<DefaultValue>,
     comma_token: Option<Token![,]>,
+}
+
+enum DefaultValue {
+    Underscore,
+    Expr(Expr),
+}
+
+impl Parse for DefaultValue {
+    fn parse(input: ParseStream) -> Result<Self> {
+        if input.peek(Token![_]) {
+            input.parse::<Token![_]>()?;
+            Ok(DefaultValue::Underscore)
+        } else {
+            let expr: Expr = input.parse()?;
+            Ok(DefaultValue::Expr(expr))
+        }
+    }
 }
 
 impl Parse for Field {
@@ -211,7 +234,7 @@ impl Parse for Field {
 
         let (eq_token, default) = if input.peek(Token![=]) {
             let eq_token: Token![=] = input.parse()?;
-            let default: Expr = input.parse()?;
+            let default: DefaultValue = input.parse()?;
             (Some(eq_token), Some(default))
         } else {
             (None, None)

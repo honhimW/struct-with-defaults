@@ -2,8 +2,7 @@ use macro3681::default_field_values;
 
 default_field_values! {
     #[derive(Debug, Default)]
-    pub struct Foo<'a, 'b>
-    {
+    pub struct Foo<'a, 'b> {
         i: i32 = 1,
         string: String = {
             let s = format!("{} {}", "hello", "world");
@@ -17,6 +16,6 @@ default_field_values! {
 }
 
 fn main() {
-    let foo = Foo::new(None, true,);
+    let foo = Foo::new(None, true);
     dbg!("{:?}", foo);
 }
