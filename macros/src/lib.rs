@@ -160,10 +160,10 @@ fn strip_default_from_derive(attrs: Vec<syn::Attribute>) -> Vec<syn::Attribute> 
                     Err(_) => output.push(attr),
                 }
             } else {
-                output.push(attr); // 无法解析就保留原样
+                output.push(attr);
             }
         } else {
-            output.push(attr); // 非 derive 直接保留
+            output.push(attr);
         }
     }
     output

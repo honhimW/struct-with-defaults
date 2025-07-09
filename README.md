@@ -12,6 +12,10 @@
 
 ## Usage
 
+```shell
+cargo add macro3681
+```
+
 ### With Default derive
 
 Default derive will be automatically removed, and generate an impl with default field values.
