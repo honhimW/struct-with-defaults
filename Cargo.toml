@@ -9,7 +9,7 @@ build = "build.rs"
 members = ["macros"]
 
 [workspace.package]
-version = "0.0.4"
+version = "0.0.5"
 rust-version = "1.87.0"
 edition = "2024"
 authors = ["honhimw <honhimw@outlook.com>"]
