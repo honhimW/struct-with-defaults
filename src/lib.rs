@@ -6,7 +6,8 @@ mod nightly;
 mod test {
     use macro3681::default_field_values;
     default_field_values! {
-        struct Example<T, T2: Default> where T: Default {
+        #[derive(Default, Debug)]
+        struct Example<'a, T, T2: Default> where T: Default {
             i: u32 = 3,
             j: i128,
             i_option: Option<u64> = Some(1000),
@@ -15,8 +16,8 @@ mod test {
                 s
             },
             os: Option<String>,
-            foo: Foo = _,
-            bytes: &'static[u8] = b"hello world",
+            foo: Foo = _, // #[derive(Default, Debug)] struct Foo { .. }
+            bytes: &'a[u8] = b"hello world",
             t: T,
             t2: T2,
         }
@@ -29,7 +30,9 @@ mod test {
 
     impl Default for Foo {
         fn default() -> Self {
-            Self { bar: "bar".to_string() }
+            Self {
+                bar: "bar".to_string(),
+            }
         }
     }
 
@@ -48,14 +51,18 @@ mod test {
 
     #[test]
     fn defaults() {
-
         let config = Example::new(0, None, 1, "foo");
         assert_eq!(config.i, 3);
         assert_eq!(config.j, 0);
         assert_eq!(config.i_option, Some(1000));
         assert_eq!(config.string, "hello world".to_string());
         assert_eq!(config.os, None);
-        assert_eq!(config.foo, Foo { bar: "bar".to_string() });
+        assert_eq!(
+            config.foo,
+            Foo {
+                bar: "bar".to_string()
+            }
+        );
         assert_eq!(config.bytes, b"hello world");
         assert_eq!(config.t, 1);
         assert_eq!(config.t2, "foo");
@@ -68,5 +75,4 @@ mod test {
         assert_eq!(c.j, 400);
         assert_eq!(c.hello, "hello world".to_string());
     }
-
 }

@@ -25,69 +25,76 @@ Default derive will be automatically removed, and generate an impl with default 
 If there are none-default fields, those fields will be added as constructor parameters. 
 ```rust
 default_field_values! {
-    #[derive(Debug, Default)]
-    pub struct Foo<'a, 'b, T: Default, T2> where T2: Default
-    {
-        i: i32 = 1,
-        string: String = {
-            let s = format!("{} {}", "hello", "world");
-            s
+        #[derive(Default, Debug)]
+        struct Example<'a, T, T2: Default> where T: Default {
+            i: u32 = 3,
+            j: i128,
+            i_option: Option<u64> = Some(1000),
+            string: String = {
+                let s = format!("{} {}", "hello", "world");
+                s
+            },
+            os: Option<String>,
+            foo: Foo = _, // #[derive(Default, Debug)] struct Foo { .. }
+            bytes: &'a[u8] = b"hello world",
+            t: T,
+            t2: T2,
         }
-        option_string: Option<String>,
-        bytes: &'a[u8] = b"hello world",
-        bytes2: &'b[u8] = b"hello world",
-        b: bool,
-        t: T,
-        t: T2,
     }
-}
 ```
 
 #### Macro Expansion
 
 ```rust
 #[derive(Debug)]
-pub struct Foo<'a, 'b, T: Default, T2> where T2: Default {
-    i: i32,
+struct Example<'a, T, T2: Default> {
+    i: u32,
+    j: i128,
+    i_option: Option<u64>,
     string: String,
-    option_string: Option<String>,
+    os: Option<String>,
+    foo: Foo,
     bytes: &'a [u8],
-    bytes2: &'b [u8],
-    b: bool,
     t: T,
-    t: T2,
+    t2: T2,
 }
-impl<'a, 'b> Foo<'a, 'b> {
-    pub fn new(option_string: Option<String>, b: bool, t: T, t2: T2) -> Self {
+impl<'a, T, T2: Default> Example<'a, T, T2>
+where
+    T: Default,
+{
+    pub fn new(j: i128, os: Option<String>, t: T, t2: T2) -> Self {
         Self {
-            i: 1,
+            i: 3,
+            j,
+            i_option: Some(1000),
             string: {
                 let s = format!("{} {}", "hello", "world");
                 s
-            }
-            ,
-            option_string,
+            },
+            os,
+            foo: Default::default(),
             bytes: b"hello world",
-            bytes2: b"hello world",
-            b,
             t,
             t2,
         }
     }
 }
-impl<'a, 'b> Default for Foo<'a, 'b> {
+impl<'a, T, T2: Default> Default for Example<'a, T, T2>
+where
+    T: Default,
+{
     fn default() -> Self {
         Self {
-            i: 1,
+            i: 3,
+            i_option: Some(1000),
             string: {
                 let s = format!("{} {}", "hello", "world");
                 s
-            }
-            ,
+            },
+            foo: Default::default(),
             bytes: b"hello world",
-            bytes2: b"hello world",
-            option_string: Default::default(),
-            b: Default::default(),
+            j: Default::default(),
+            os: Default::default(),
             t: Default::default(),
             t2: Default::default(),
         }
