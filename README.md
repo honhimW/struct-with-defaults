@@ -96,7 +96,3 @@ default_field_values! {
     }
 }
 ```
-
-## Limitation
-
-> Cannot work with Generics. 

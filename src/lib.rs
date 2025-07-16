@@ -6,7 +6,7 @@ mod nightly;
 mod test {
     use macro3681::default_field_values;
     default_field_values! {
-        struct Example {
+        struct Example<T, T2: Default> where T: Default {
             i: u32 = 3,
             j: i128,
             i_option: Option<u64> = Some(1000),
@@ -17,6 +17,8 @@ mod test {
             os: Option<String>,
             foo: Foo = _,
             bytes: &'static[u8] = b"hello world",
+            t: T,
+            t2: T2,
         }
     }
 
@@ -43,10 +45,11 @@ mod test {
     fn get() -> String {
         "hello world".to_string()
     }
-    
+
     #[test]
     fn defaults() {
-        let config = Example::new(0, None);
+
+        let config = Example::new(0, None, 1, "foo");
         assert_eq!(config.i, 3);
         assert_eq!(config.j, 0);
         assert_eq!(config.i_option, Some(1000));
@@ -54,6 +57,9 @@ mod test {
         assert_eq!(config.os, None);
         assert_eq!(config.foo, Foo { bar: "bar".to_string() });
         assert_eq!(config.bytes, b"hello world");
+        assert_eq!(config.t, 1);
+        assert_eq!(config.t2, "foo");
+
         let c = ExampleWithDefaultTrait::new(101).clone();
         assert_eq!(c.i, 101);
         assert_eq!(c.j, 400);

@@ -52,7 +52,7 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
         }
     });
 
-    let (impl_gen, _, where_gen) = generics.split_for_impl();
+    let (impl_gen, type_gen, where_gen) = generics.split_for_impl();
     let expanded = if has_derive_default(&attrs) {
         let has_default_inits = fields.iter()
             .filter_map(|f| {
@@ -77,11 +77,11 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
         let strip_default_attrs = strip_default_from_derive(attrs);
         quote! {
             #(#strip_default_attrs)*
-            #visibility struct #name #generics #where_gen {
+            #visibility struct #name #generics {
                 #(#field_defs,)*
             }
 
-            impl #impl_gen #name #generics {
+            impl #impl_gen #name #type_gen #where_gen {
                 pub fn new(#(#constructor_args),*) -> Self {
                     Self {
                         #(#constructor_inits,)*
@@ -89,7 +89,7 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
                 }
             }
 
-            impl #impl_gen Default for #name #generics {
+            impl #impl_gen Default for #name #type_gen #where_gen {
                 fn default() -> Self {
                     Self {
                         #(#has_default_inits,)*
@@ -102,11 +102,11 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
     } else {
         quote! {
             #(#attrs)*
-            #visibility struct #name #generics #where_gen {
+            #visibility struct #name #generics {
                 #(#field_defs,)*
             }
 
-            impl #impl_gen #name #generics {
+            impl #impl_gen #name #type_gen #where_gen {
                 pub fn new(#(#constructor_args),*) -> Self {
                     Self {
                         #(#constructor_inits,)*
@@ -115,7 +115,6 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
             }
         }
     };
-
 
     TokenStream::from(expanded)
 }
