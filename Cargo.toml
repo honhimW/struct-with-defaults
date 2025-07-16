@@ -9,9 +9,9 @@ build = "build.rs"
 members = ["macros"]
 
 [workspace.package]
-version = "0.1.0"
-rust-version = "1.87.0"
-edition = "2024"
+version = "0.2.0"
+rust-version = "1.61"
+edition = "2021"
 authors = ["honhimw <honhimw@outlook.com>"]
 description = "define struct with default field values like rfc3681 via proc-macro"
 keywords = ["default-values", "proc-macro"]
