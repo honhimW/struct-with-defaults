@@ -25,29 +25,32 @@ Default derive will be automatically removed, and generate an impl with default 
 If there are none-default fields, those fields will be added as constructor parameters. 
 ```rust
 default_field_values! {
-        #[derive(Default, Debug)]
-        struct Example<'a, T, T2: Default> where T: Default {
-            i: u32 = 3,
-            j: i128,
-            i_option: Option<u64> = Some(1000),
-            string: String = {
-                let s = format!("{} {}", "hello", "world");
-                s
-            },
-            os: Option<String>,
-            foo: Foo = _, // #[derive(Default, Debug)] struct Foo { .. }
-            bytes: &'a[u8] = b"hello world",
-            t: T,
-            t2: T2,
-        }
+    #[derive(Default, Debug)]
+    struct Example<'a, T, T2: Default> where T: Default {
+        i: u32 = 3,
+        j: i128,
+        i_option: Option<u64> = Some(1000),
+        string: String = {
+            let s = format!("{} {}", "hello", "world");
+            s
+        },
+        os: Option<String>,
+        foo: Foo = _, // #[derive(Default, Debug)] struct Foo { .. }
+        bytes: &'a[u8] = b"hello world",
+        t: T,
+        t2: T2,
     }
+}
 ```
 
 #### Macro Expansion
 
 ```rust
 #[derive(Debug)]
-struct Example<'a, T, T2: Default> {
+struct Example<'a, T, T2>
+where
+    T: Default,
+{
     i: u32,
     j: i128,
     i_option: Option<u64>,

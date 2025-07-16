@@ -77,7 +77,7 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
         let strip_default_attrs = strip_default_from_derive(attrs);
         quote! {
             #(#strip_default_attrs)*
-            #visibility struct #name #generics {
+            #visibility struct #name #type_gen #where_gen {
                 #(#field_defs,)*
             }
 
@@ -102,7 +102,7 @@ pub fn default_field_values(input: TokenStream) -> TokenStream {
     } else {
         quote! {
             #(#attrs)*
-            #visibility struct #name #generics {
+            #visibility struct #name #type_gen #where_gen {
                 #(#field_defs,)*
             }
 
