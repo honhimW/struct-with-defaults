@@ -1,5 +1,3 @@
-#![feature(default_field_values)]
-
 mod nightly;
 
 #[cfg(test)]
@@ -21,6 +19,11 @@ mod test {
             t: T,
             t2: T2,
         }
+    }
+
+    default_field_values! {
+        #[derive(Default, Debug)]
+        struct Tuple<'a, T: Default>(T, #[allow(unused)] &'a str = "abc", Foo = _, Option<String>);
     }
 
     #[derive(Eq, PartialEq, Debug)]
@@ -74,5 +77,16 @@ mod test {
         assert_eq!(c.i, 0);
         assert_eq!(c.j, 400);
         assert_eq!(c.hello, "hello world".to_string());
+
+        let tuple = Tuple::<bool>::default();
+        assert_eq!(tuple.0, false);
+        assert_eq!(tuple.1, "abc");
+        assert_eq!(
+            tuple.2,
+            Foo {
+                bar: "bar".to_string()
+            }
+        );
+        assert_eq!(tuple.3, None);
     }
 }
