@@ -41,6 +41,11 @@ default_field_values! {
         t2: T2,
     }
 }
+
+default_field_values! {
+    #[derive(Default, Debug)]
+    struct Tuple<'a, T: Default>(T, #[allow(unused)] &'a str = "abc", Foo = _, Option<String>);
+}
 ```
 
 #### Macro Expansion
@@ -103,6 +108,11 @@ where
         }
     }
 }
+
+#[derive(Debug)]
+struct Tuple<'a, T> (T, #[allow(unused)]   &'a str, Foo, Option<String> );
+impl<'a, T: Default> Tuple<'a, T> { pub fn new(_0: T, _3: Option<String>) -> Self { Self(_0, "abc", Default::default(), _3 ) } }
+impl<'a, T: Default> Default for Tuple<'a, T> { fn default() -> Self { Self(Default::default(), "abc", Default::default(), Default::default() ) } 
 ```
 
 ### Without Default derive

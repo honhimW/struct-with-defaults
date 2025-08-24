@@ -188,7 +188,6 @@ fn gen_parenthesized(def: ParenthesizedDef) -> TokenStream {
                     Self(#(#inits,)*)
                 }
             }
-
         }
     } else {
         quote! {
@@ -197,9 +196,7 @@ fn gen_parenthesized(def: ParenthesizedDef) -> TokenStream {
 
             impl #impl_gen #name #type_gen {
                 pub fn new(#(#constructor_args),*) -> Self {
-                    Self (
-                        #(#constructor_inits,)*
-                    )
+                    Self (#(#constructor_inits,)*)
                 }
             }
         }
