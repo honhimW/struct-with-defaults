@@ -20,11 +20,16 @@ use syn::{parse_macro_input, token, Attribute, Expr, Generics, Ident, Token, Typ
 /// ```
 #[proc_macro]
 pub fn default_field_values(input: TokenStream) -> TokenStream {
-    let struct_kind = parse_macro_input!(input as StructKind);
-    match struct_kind {
-        StructKind::Braced(b) => gen_braced(b),
-        StructKind::Parenthesized(p) => gen_parenthesized(p),
+    let many_struct = parse_macro_input!(input as ManyStruct);
+    let mut tokens = TokenStream::new();
+    for struct_kind in many_struct.0 {
+        let token_stream = match struct_kind {
+            StructKind::Braced(b) => gen_braced(b),
+            StructKind::Parenthesized(p) => gen_parenthesized(p),
+        };
+        tokens.extend(token_stream);
     }
+    tokens
 }
 
 fn gen_braced(def: BracedDef) -> TokenStream {
@@ -294,6 +299,18 @@ struct Element {
 enum StructKind {
     Braced(BracedDef),
     Parenthesized(ParenthesizedDef),
+}
+
+struct ManyStruct(Vec<StructKind>);
+
+impl Parse for ManyStruct {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let mut structs: Vec<StructKind> = Vec::new();
+        while !input.is_empty() {
+            structs.push(input.parse()?);
+        }
+        Ok(ManyStruct(structs))
+    }
 }
 
 impl Parse for StructKind {

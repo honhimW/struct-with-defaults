@@ -19,12 +19,15 @@ mod test {
             t: T,
             t2: T2,
         }
-    }
 
-    default_field_values! {
         #[derive(Default, Debug)]
         struct Tuple<'a, T: Default>(T, #[allow(unused)] &'a str = "abc", Foo = _, Option<String>);
     }
+
+    // default_field_values! {
+    //     #[derive(Default, Debug)]
+    //     struct Tuple<'a, T: Default>(T, #[allow(unused)] &'a str = "abc", Foo = _, Option<String>);
+    // }
 
     #[derive(Eq, PartialEq, Debug)]
     struct Foo {
